@@ -1,124 +1,72 @@
-import funkin.play.song.Song;
-import funkin.play.PlayState;
-import flixel.FlxSprite;
-import funkin.graphics.FunkinSprite;
-import funkin.save.Save;
-import funkin.play.PlayStatePlaylist;
-import funkin.audio.FunkinSound;
-import flixel.tweens.FlxTween;
 import flixel.tweens.FlxEase;
-import funkin.ui.options.PreferencesMenu;
-import funkin.util.HapticUtil;
+import flixel.tweens.FlxTween;
+import funkin.play.cutscene.dialogue.ConversationState;
+import funkin.play.cutscene.dialogue.DialogueBox;
+import funkin.audio.FunkinSound;
 
-class RosesSong extends Song
+class RosesDialogueBox extends DialogueBox
 {
-  var hasPlayedCutscene:Bool;
-
-  public function new()
+  function new()
   {
     super('roses');
   }
 
-  public override function listAltInstrumentalIds(difficultyId:String, variationId:String):Array<String>
+  function onAnimationFinished(name:String):Void
   {
-    var results:Array<String> = super.listAltInstrumentalIds(difficultyId, variationId);
+    super.onAnimationFinished(name);
 
-    if (difficultyId == 'easy' || difficultyId == 'normal' || difficultyId == 'hard')
+    if (name == 'sentenceEnd')
     {
-      var hasBeatenPicoMix = Save.instance.hasBeatenSong(this.id, null, 'pico');
-
-      if (!hasBeatenPicoMix) results = [for (id in results) if (id != 'pico') id];
+      playAnimation('idle');
     }
-
-    return results;
-  }
-
-  public override function onCountdownStart(event:CountdownScriptEvent):Void
-  {
-    super.onCountdownStart(event);
-
-    // Skip the cutscene unless we are in Story Mode, or Pico Mix specifically.
-    if (!PlayStatePlaylist.isStoryMode) hasPlayedCutscene = true;
-
-    // Skip the cutscene if we're playtesting in the Chart Editor.
-    if (PlayState.instance.isChartingMode && !hasPlayedCutscene) hasPlayedCutscene = true;
-
-    if (!hasPlayedCutscene)
+    if (name == 'click')
     {
-      trace('Pausing countdown to play cutscene.');
-
-      hasPlayedCutscene = true;
-
-      event.cancel(); // CANCEL THE COUNTDOWN!
-
-      // Play a SFX
-      FunkinSound.playOnce(Paths.sound('ANGRY_TEXT_BOX'), 1.0);
-
-      HapticUtil.vibrate(0.1, 0.5, 1, 1);
-
-      // ERIC: There's a known bug where, on the School stage, pausing the stage animations then trying
-      // to restart them causes the animations to freeze.
-      // TODO: Commenting out this line causes the animations to work but they play even during the dialogue, which is supposed to pause everything.
-      // PlayState.instance.currentStage.pause();
-
-      startDialogue();
+      playAnimation('speaking');
     }
   }
 
-  function startDialogue()
+  function onTypingComplete():Void
   {
-    var targetDialogue = 'roses';
-    if (!Preferences.naughtyness) targetDialogue += "-censored";
-
-    trace('Playing dialogue...');
-    PlayState.instance.startConversation(targetDialogue);
+    playAnimation('sentenceEnd');
+    super.onTypingComplete();
   }
 
-  /**
-   * Don't replay the cutscene between restarts.
-   */
-  function onSongRetry(event:ScriptEvent)
+  public function onDialogueStart(event:DialogueScriptEvent):Void
   {
-    super.onSongRetry(event);
-
-    hasPlayedCutscene = true;
+    super.onDialogueStart(event);
   }
 
-  /**
-   * Replay the cutscene after leaving the song.
-   */
-  function onCreate(event:ScriptEvent):Void
+  public function onDialogueLine(event:DialogueScriptEvent):Void
   {
-    super.onCreate(event);
+    // Override the default box animation behavior by switching the state
+    event.conversation.state = ConversationState.Opening;
 
-    hasPlayedCutscene = false;
-  }
+    FunkinSound.playOnce(Paths.sound('textboxClick'), 0.6);
 
-  function onBeatHit(event:SongTimeScriptEvent)
-  {
-    // When overriding onBeatHit, make sure to call super.onBeatHit,
-    // otherwise boppers will not work.
-    super.onBeatHit(event);
+    super.onDialogueLine(event);
 
-    if (event.beat == 180 && PlayStatePlaylist.isStoryMode)
+    if (getCurrentAnimation() == 'idle')
     {
-      trace('Hit end of song! Starting outro.');
-
-      PlayState.instance.camCutscene.visible = true;
-
-      var red = new FunkinSprite(-20, -20).makeSolidColor(FlxG.width * 1.5, FlxG.height * 1.5, 0xFFFF1B31);
-      red.cameras = [PlayState.instance.camCutscene];
-
-      red.alpha = 0.0;
-      FlxTween.tween(PlayState.instance.camHUD, {alpha: 0.0}, 1.5, {ease: FlxEase.linear});
-      FlxTween.tween(red, {alpha: 1.0}, 2.0, {ease: FlxEase.linear});
-      PlayState.instance.add(red);
+      // click, then speaking
+      playAnimation('click');
+    }
+    else if (getCurrentAnimation() == 'click')
+    {
+      playAnimation('speaking');
     }
   }
 
-  public override function onDialogueEnd()
+  public function onDialogueEnd(event:DialogueScriptEvent):Void
   {
-    // We may need to wait for the outro to play.
-    Countdown.performCountdown();
+    super.onDialogueEnd(event);
+    // Play 'enter' in reverse
+    this.textDisplay.visible = false;
+
+    playAnimation('exit', false);
+  }
+
+  override function onDestroy(event:ScriptEvent)
+  {
+    super.onDestroy(event);
   }
 }

@@ -1,134 +1,157 @@
-import funkin.play.song.Song;
-import funkin.play.PlayState;
-import funkin.play.cutscene.VideoCutscene;
-import funkin.graphics.FunkinSprite;
-import funkin.play.cutscene.CutsceneType;
-import funkin.play.PlayStatePlaylist;
-import funkin.save.Save;
-import funkin.mobile.input.ControlsHandler;
+import funkin.play.notes.notekind.NoteKind;
 
-/**
- * Apply middlescroll to the song.
- */
-class BlazinSong extends Song
-{
-  public function new()
-  {
-    super('blazin');
-
-    this.hasHidden = false;
-    this.hasPlayedCutscene = false;
+class BlazinPunchHighNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-punchhigh", "Punch High (Blazin')");
   }
+}
 
-  function onCreate(event:ScriptEvent):Void
-  {
-    super.onCreate(event);
-
-    this.hasHidden = false;
-    this.hasPlayedCutscene = false;
+class BlazinPunchHighDodgedNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-punchhighdodged", "Punch High (Dodge) (Blazin')");
   }
+}
 
-  function onDestroy(event:ScriptEvent):Void
-  {
-    super.onDestroy(event);
-
-    this.hasHidden = false;
+class BlazinPunchHighBlockedNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-punchhighblocked", "Punch High (Block) (Blazin')");
   }
+}
 
-  function onNoteHit(event:HitNoteScriptEvent):Void
-  {
-    super.onNoteHit(event);
+class BlazinPunchHighSpinNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-punchhighspin", "Punch High (Spin) (Blazin')");
   }
+}
 
-  public function listDifficulties(variationId:String, variationIds:Array<String>, showLocked:Bool):Array<String>
-  {
-    if (showLocked || Save.instance.hasBeatenLevel('weekend1'))
-    {
-      return super.listDifficulties(variationId, variationIds);
-    }
-
-    // Hide all difficulties if the player has not beaten the week.
-    return [];
+class BlazinPunchLowNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-punchlow", "Punch Low (Blazin')");
   }
+}
 
-  var hasHidden = false;
-  var hasPlayedCutscene:Bool = false;
-
-  function onUpdate(event:ScriptEvent):Void
-  {
-    super.onUpdate(event);
-
-    if (!this.hasHidden)
-    {
-      this.hasHidden = true;
-      hideOpponentStrumline();
-      centerPlayerStrumline();
-    }
+class BlazinPunchLowDodgedNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-punchlowdodged", "Punch Low (Dodge) (Blazin')");
   }
+}
 
-  function hideOpponentStrumline()
-  {
-    var opponentStrumline:FlxSprite = PlayState.instance.opponentStrumline;
-    if (opponentStrumline != null)
-    {
-      for (arrow in opponentStrumline.members)
-      {
-        arrow.visible = false;
-      }
-    }
+class BlazinPunchLowBlockedNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-punchlowblocked", "Punch Low (Block) (Blazin')");
   }
+}
 
-  function centerPlayerStrumline()
-  {
-    // This is a song gimmick we are never making middlescroll an option.
-
-    if (Preferences.controlsScheme == "Arrows" && !ControlsHandler.usingExternalInputDevice) return;
-
-    var playerStrumline:FlxSprite = PlayState.instance.playerStrumline;
-    if (playerStrumline != null)
-    {
-      playerStrumline.x = FlxG.width / 2 - playerStrumline.width / 2;
-    }
+class BlazinPunchLowSpinNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-punchlowspin", "Punch High (Spin) (Blazin')");
   }
+}
 
-  public override function onSongEnd(event:CountdownScriptEvent):Void
-  {
-    super.onSongEnd(event);
-
-    // Keep the cutscene from playing outside of story mode.
-    if (!PlayStatePlaylist.isStoryMode) hasPlayedCutscene = true;
-
-    if (!hasPlayedCutscene)
-    {
-      trace('Pausing ending to play a video cutscene (`blazin`)');
-
-      hasPlayedCutscene = true;
-
-      // Add a black background behind the cutscene to fix a transition bug!
-      trace('Adding black background behind cutscene over UI');
-      var bgSprite = new FunkinSprite(-100, -100);
-      bgSprite.makeSolidColor(2000, 2500, 0xFF000000);
-      bgSprite.cameras = [PlayState.instance.camHUD]; // Show over the HUD.
-      bgSprite.zIndex = 1000000;
-      PlayState.instance.add(bgSprite);
-      PlayState.instance.refresh();
-
-      event.cancel(); // CANCEL THE COUNTDOWN!
-
-      startVideo();
-    }
-    else
-    {
-      // Make sure the cutscene can play again next time!
-      hasPlayedCutscene = false;
-      // DO NOT CANCEL THE EVENT!
-    }
+class BlazinPicoUppercutPrepNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-picouppercutprep", "Pico Uppercut (Prep) (Blazin')");
   }
+}
 
-  function startVideo()
-  {
-    VideoCutscene.play(Paths.videos('blazinCutscene'), CutsceneType.ENDING);
-    // This will call onSongEnd() again so make sure the flag is set!
-    hasPlayedCutscene = true;
+class BlazinPicoUppercutNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-picouppercut", "Pico Uppercut (Blazin')");
+  }
+}
+
+class BlazinBlockHighNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-blockhigh", "Block High (Blazin')");
+  }
+}
+
+class BlazinBlockLowNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-blocklow", "Block Low (Blazin')");
+  }
+}
+
+class BlazinBlockSpinNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-blockspin", "Block High (Spin) (Blazin')");
+  }
+}
+
+class BlazinDodgeHighNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-dodgehigh", "Dodge High (Blazin')");
+  }
+}
+
+class BlazinDodgeLowNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-dodgelow", "Dodge Low (Blazin')");
+  }
+}
+
+class BlazinDodgeSpinNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-dodgespin", "Dodge High (Spin) (Blazin')");
+  }
+}
+
+class BlazinHitHighNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-hithigh", "Hit High (Blazin')");
+  }
+}
+
+class BlazinHitLowNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-hitlow", "Hit Low (Blazin')");
+  }
+}
+
+class BlazinHitSpinNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-hitspin", "Hit High (Spin) (Blazin')");
+  }
+}
+
+class BlazinDarnellUppercutPrepNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-darnelluppercutprep", "Darnell Uppercut (Prep) (Blazin')");
+  }
+}
+
+class BlazinDarnellUppercutNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-darnelluppercut", "Darnell Uppercut (Blazin')");
+  }
+}
+
+class BlazinIdleNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-idle", "Idle (Blazin')");
+  }
+}
+
+class BlazinFakeoutNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-fakeout", "Fakeout (Blazin')");
+  }
+}
+
+class BlazinTauntNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-taunt", "Taunt (If Fakeout) (Blazin')");
+  }
+}
+
+class BlazinTauntForceNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-tauntforce", "Taunt (Forced) (Blazin')");
+  }
+}
+
+class BlazinReverseFakeoutNoteKind extends NoteKind {
+  public function new() {
+    super("weekend-1-reversefakeout", "Fakeout (Reverse) (Blazin')");
   }
 }
