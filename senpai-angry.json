@@ -1,39 +1,21 @@
 {
   "version": "1.0.0",
   "name": "Senpai (Angry)",
-  "assetPath": "characters/senpai",
-  "singTime": 8.0,
+  "assetPath": "weeb/portrait-senpai-angry",
+  "flipX": false,
   "isPixel": true,
-  "scale": 6,
-  "healthIcon": {
-    "id": "senpai-angry",
-    "isPixel": true
-  },
+  "scale": 5.4,
+  "offsets": [-342.5, -240],
   "animations": [
     {
-      "name": "idle",
-      "prefix": "Angry Senpai Idle instance 10",
-      "offsets": [0, 0]
+      "name": "talkEnter",
+      "prefix": "portraitEnter0",
+      "frameRate": 12
     },
     {
-      "name": "singLEFT",
-      "prefix": "Angry Senpai LEFT NOTE instance 10",
-      "offsets": [4, 1]
-    },
-    {
-      "name": "singDOWN",
-      "prefix": "Angry Senpai DOWN NOTE instance 10",
-      "offsets": [1, 1]
-    },
-    {
-      "name": "singUP",
-      "prefix": "Angry Senpai UP NOTE instance 10",
-      "offsets": [1, 6]
-    },
-    {
-      "name": "singRIGHT",
-      "prefix": "Angry Senpai RIGHT NOTE instance 10",
-      "offsets": [-1, 0]
+      "name": "talk",
+      "prefix": "portraitTalk0",
+      "offsets": [-20, 10]
     }
   ]
 }
