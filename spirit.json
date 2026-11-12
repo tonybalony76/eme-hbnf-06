@@ -1,20 +1,43 @@
 {
   "version": "1.0.0",
   "name": "Spirit",
-  "assetPath": "weeb/spiritFaceForward",
-  "flipX": false,
+  "assetPath": "characters/spirit",
+  "singTime": 8.0,
+  "renderType": "packer",
   "isPixel": true,
-  "scale": 5.4,
-  "offsets": [-468, -344],
+  "scale": 6,
+  "offsets": [31, 40],
+  "cameraOffsets": [-31, -40],
   "animations": [
     {
-      "name": "talkEnter",
-      "prefix": "portraitEnter0",
-      "frameRate": 12
+      "name": "idle",
+      "prefix": "idle spirit_",
+      "frameIndices": [],
+      "offsets": [0, 0]
     },
     {
-      "name": "talk",
-      "prefix": "portraitTalk0"
+      "name": "singLEFT",
+      "prefix": "left_",
+      "frameIndices": [],
+      "offsets": [2, -2]
+    },
+    {
+      "name": "singDOWN",
+      "prefix": "spirit down_",
+      "frameIndices": [],
+      "offsets": [65, 64]
+    },
+    {
+      "name": "singUP",
+      "prefix": "up_",
+      "frameIndices": [],
+      "offsets": [0, 9]
+    },
+    {
+      "name": "singRIGHT",
+      "prefix": "right_",
+      "frameIndices": [],
+      "offsets": [-3, 1]
     }
   ]
 }
