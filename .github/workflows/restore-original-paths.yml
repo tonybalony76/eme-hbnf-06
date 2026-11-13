@@ -61,31 +61,31 @@ jobs:
                   continue
 
               exact = [p for p in candidates if Path(p).name == src.name]
-              if len(exact) == 1:
-                  dest_rel = exact[0]
-              else:
-                  normalized = [p for p in candidates if norm_name(Path(p).name) == norm_name(src.name)]
-                  if len(normalized) != 1:
-                      print(f"AMBIGUOUS: {src.name} ({h[:12]}) -> {len(normalized)} basename matches / {len(candidates)} hash matches")
-                      skipped += 1
-                      continue
-                  dest_rel = normalized[0]
-
-              dest = Path(dest_rel)
-              if dest.exists():
-                  if hashlib.sha256(dest.read_bytes()).hexdigest() == h:
-                      src.unlink()
-                      moved += 1
-                      print(f"Duplicate already restored; removed root duplicate: {src}")
-                  else:
-                      print(f"CONFLICT: destination exists with different content: {dest}")
-                      conflicts += 1
+              normalized = exact if exact else [p for p in candidates if norm_name(Path(p).name) == norm_name(src.name)]
+              if not normalized:
+                  print(f"UNMATCHED: {src.name} ({h[:12]}) -> no basename match among {len(candidates)} hash matches")
+                  skipped += 1
                   continue
 
-              dest.parent.mkdir(parents=True, exist_ok=True)
-              shutil.move(str(src), str(dest))
-              moved += 1
-              print(f"RESTORED: {src} -> {dest}")
+              # Restore identical assets to every matching manifest path.
+              safe = True
+              for dest_rel in normalized:
+                  dest = Path(dest_rel)
+                  if dest.exists() and hashlib.sha256(dest.read_bytes()).hexdigest() != h:
+                      print(f"CONFLICT: destination exists with different content: {dest}")
+                      conflicts += 1
+                      safe = False
+                      continue
+                  if not dest.exists():
+                      dest.parent.mkdir(parents=True, exist_ok=True)
+                      shutil.copy2(src, dest)
+                      moved += 1
+                      print(f"RESTORED: {src} -> {dest}")
+                  else:
+                      print(f"ALREADY PRESENT: {dest}")
+
+              if safe:
+                  src.unlink()
 
           print(f"\nSummary: restored/merged={moved}, skipped={skipped}, conflicts={conflicts}")
           PY
