@@ -1,0 +1,104 @@
+name: Restore original FNF folder paths
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Restore files using the verified manifest
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import csv, hashlib, os, re, shutil, subprocess
+          from pathlib import Path
+          import urllib.request
+
+          manifest_url = "https://raw.githubusercontent.com/tonybalony76/eme-hbnf-06/main/FNF-bin-manifest.csv"
+          manifest_file = Path("/tmp/FNF-bin-manifest.csv")
+          urllib.request.urlretrieve(manifest_url, manifest_file)
+
+          def norm_name(name):
+              # Treat GitHub's duplicate-upload suffix, e.g. image (2).png,
+              # as a possible renamed copy of image.png.
+              return re.sub(r" \(\d+\)(?=\.[^.]+$)", "", name)
+
+          targets = {}
+          with manifest_file.open(newline="", encoding="utf-8-sig") as f:
+              for row in csv.DictReader(f):
+                  rel = row["Path"].replace("\\", "/").lstrip("/")
+                  digest = row["SHA256"].strip().lower()
+                  if rel and digest:
+                      targets.setdefault(digest, []).append(rel)
+
+          tracked = subprocess.check_output(["git", "ls-files", "-z"]).decode().split("\0")
+          moved = 0
+          skipped = 0
+          conflicts = 0
+
+          for raw in tracked:
+              if not raw:
+                  continue
+              src = Path(raw)
+              if not src.is_file() or len(src.parts) != 1:
+                  continue
+              if src.name == "FNF-bin-manifest.csv" or src.name.startswith("."):
+                  continue
+
+              h = hashlib.sha256(src.read_bytes()).hexdigest()
+              candidates = targets.get(h, [])
+              if not candidates:
+                  skipped += 1
+                  continue
+
+              exact = [p for p in candidates if Path(p).name == src.name]
+              if len(exact) == 1:
+                  dest_rel = exact[0]
+              else:
+                  normalized = [p for p in candidates if norm_name(Path(p).name) == norm_name(src.name)]
+                  if len(normalized) != 1:
+                      print(f"AMBIGUOUS: {src.name} ({h[:12]}) -> {len(normalized)} basename matches / {len(candidates)} hash matches")
+                      skipped += 1
+                      continue
+                  dest_rel = normalized[0]
+
+              dest = Path(dest_rel)
+              if dest.exists():
+                  if hashlib.sha256(dest.read_bytes()).hexdigest() == h:
+                      src.unlink()
+                      moved += 1
+                      print(f"Duplicate already restored; removed root duplicate: {src}")
+                  else:
+                      print(f"CONFLICT: destination exists with different content: {dest}")
+                      conflicts += 1
+                  continue
+
+              dest.parent.mkdir(parents=True, exist_ok=True)
+              shutil.move(str(src), str(dest))
+              moved += 1
+              print(f"RESTORED: {src} -> {dest}")
+
+          print(f"\nSummary: restored/merged={moved}, skipped={skipped}, conflicts={conflicts}")
+          PY
+
+      - name: Commit restored paths
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git add -A
+            git commit -m "Restore FNF files to original folder paths"
+            git push
+          else
+            echo "No changes to commit."
+          fi
